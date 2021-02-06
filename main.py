@@ -1,16 +1,29 @@
-# This is a sample Python script.
+from flask import Flask, request
+from werkzeug.utils import secure_filename
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+from landmark_find_service import LandMarkFinder
+
+app = Flask(__name__)
+
+land_mark_finder = LandMarkFinder()
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+@app.route("/api/identify_landmarks", methods=["POST"])
+def identify_landmarks():
+    if request.method == "POST":
+        image_file = request.files["image"]
+        file_name = secure_filename(filename=image_file.filename)
+        file_save = f"uploads/{file_name}"
+        image_file.save(file_save)
+        result = land_mark_finder.predict(file_save)
+        print(result["locations"][0])
+        print(result["descriptors"][0])
+
+    return {
+        "status": "success",
+        "label": None
+    }
 
 
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    app.run()
